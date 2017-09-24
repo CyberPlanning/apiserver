@@ -57,7 +57,7 @@ class Query(graphene.AbstractType):
                               to_date=graphene.Argument(DateTime),
                               event_id=graphene.String(),
                               title=graphene.String(),
-                              groups=graphene.List(graphene.String),
+                              affiliation_groups=graphene.List(graphene.String),
                               classrooms=graphene.List(graphene.String),
                               teachers=graphene.List(graphene.String),
                               limit=graphene.Argument(graphene.Int)
@@ -83,10 +83,10 @@ class Query(graphene.AbstractType):
             mongo_filter["event_id"] = args["event_id"]
         if 'title' in args:
             mongo_filter["title"] = re.compile(args["title"])
-        if 'groups' in args:
-            mongo_filter["groups"] = {
+        if 'affiliation_groups' in args:
+            mongo_filter["affiliation"] = {
                 "$in": [
-                    re.compile(group) for group in args["groups"]
+                    re.compile(group) for group in args["affiliation_groups"]
                 ]
             }
         if 'classrooms' in args:
