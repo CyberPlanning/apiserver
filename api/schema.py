@@ -1,6 +1,6 @@
 import graphene
 import datetime
-from pymongo import MongoClient
+from pymongo import MongoClient, ASCENDING, DESCENDING
 from graphql.language import ast
 
 client = MongoClient()
@@ -48,8 +48,6 @@ class Event(graphene.ObjectType):
 
 class Planning(graphene.ObjectType):
     events = graphene.List(Event)
-    from_date = DateTime()
-    to_date = DateTime()
 
 
 class Query(graphene.AbstractType):
@@ -58,6 +56,7 @@ class Query(graphene.AbstractType):
                                                           required=True),
                               to_date=graphene.Argument(DateTime),
                               event_id=graphene.String(),
+                              title=graphene.String(),
                               groups=graphene.List(graphene.String),
                               classrooms=graphene.List(graphene.String),
                               teachers=graphene.List(graphene.String),
@@ -82,6 +81,8 @@ class Query(graphene.AbstractType):
 
         if 'event_id' in args:
             mongo_filter["event_id"] = args["event_id"]
+        if 'title' in args:
+            mongo_filter["title"] = {"$regex": args["title"]}
         if 'groups' in args:
             mongo_filter["groups"] = {"$in": [group for group in args["groups"]]}
         if 'classrooms' in args:
@@ -90,6 +91,7 @@ class Query(graphene.AbstractType):
             mongo_filter["teachers"] = {"$in": [teacher for teacher in args["teachers"]]}
 
         cursor = planning.planning_cyber.find(mongo_filter)
+        cursor.sort("start_date", ASCENDING)
 
         if 'limit' in args and args['limit'] > 0:
             mongo_planning = cursor.limit(args['limit'])
