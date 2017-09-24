@@ -1,10 +1,8 @@
 import graphene
 import datetime
-from pymongo import MongoClient, ASCENDING, DESCENDING
+import re
+from pymongo import MongoClient, ASCENDING
 from graphql.language import ast
-
-client = MongoClient()
-planning = client.planning
 
 
 class DateTime(graphene.Scalar):
@@ -51,6 +49,8 @@ class Planning(graphene.ObjectType):
 
 
 class Query(graphene.AbstractType):
+    client = MongoClient()
+    db = client.planning
     planning = graphene.Field(Planning,
                               from_date=graphene.Argument(DateTime,
                                                           required=True),
@@ -82,15 +82,27 @@ class Query(graphene.AbstractType):
         if 'event_id' in args:
             mongo_filter["event_id"] = args["event_id"]
         if 'title' in args:
-            mongo_filter["title"] = {"$regex": args["title"]}
+            mongo_filter["title"] = re.compile(args["title"])
         if 'groups' in args:
-            mongo_filter["groups"] = {"$in": [group for group in args["groups"]]}
+            mongo_filter["groups"] = {
+                "$in": [
+                    re.compile(group) for group in args["groups"]
+                ]
+            }
         if 'classrooms' in args:
-            mongo_filter["classrooms"] = {"$in": [classroom for classroom in args["classrooms"]]}
+            mongo_filter["classrooms"] = {
+                "$in": [
+                    re.compile(classroom) for classroom in args["classrooms"]
+                ]
+            }
         if 'teachers' in args:
-            mongo_filter["teachers"] = {"$in": [teacher for teacher in args["teachers"]]}
+            mongo_filter["teachers"] = {
+                "$in": [
+                    re.compile(teacher) for teacher in args["teachers"]
+                ]
+            }
 
-        cursor = planning.planning_cyber.find(mongo_filter)
+        cursor = Query.db.planning_cyber.find(mongo_filter)
         cursor.sort("start_date", ASCENDING)
 
         if 'limit' in args and args['limit'] > 0:
