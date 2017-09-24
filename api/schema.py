@@ -19,7 +19,7 @@ class DateTime(graphene.Scalar):
 
     @staticmethod
     def serialize(dt):
-        return dt.isoformat
+        return dt.isoformat()
 
     @staticmethod
     def parse_literal(node):
