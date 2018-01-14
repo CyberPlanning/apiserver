@@ -48,8 +48,8 @@ class Planning(graphene.ObjectType):
     events = graphene.List(Event)
 
 
-class Query(graphene.AbstractType):
-    client = MongoClient()
+class Query(graphene.ObjectType):
+    client = MongoClient("mongo", 27017)
     db = client.planning
     planning = graphene.Field(Planning,
                               from_date=graphene.Argument(DateTime,
@@ -63,50 +63,56 @@ class Query(graphene.AbstractType):
                               limit=graphene.Argument(graphene.Int)
                               )
 
-    def resolve_planning(self, args, context, info):
-        start_date = args["from_date"]
-        mongo_filter = {"start_date": {"$gte": start_date}}
+    def resolve_planning(self, info, from_date,
+                                     to_date=None,
+                                     event_id=None,
+                                     title=None,
+                                     affiliation_groups=None,
+                                     classrooms=None,
+                                     teachers=None,
+                                     limit=0):
+        mongo_filter = {"start_date": {"$gte": from_date}}
 
-        if 'to_date' in args:
-            mongo_filter["end_date"] = {"$lte": args["to_date"]}
+        if to_date:
+            mongo_filter["end_date"] = {"$lte": to_date}
         else:
             # le jour suivant à 0h, 0min, 0s, 0ms
             mongo_filter["end_date"] = {"$lte": datetime.timedelta(
                 days=1,
-                hours=-start_date.hour,
-                minutes=-start_date.minute,
-                seconds=-start_date.second,
-                microseconds=-start_date.microsecond
-            ) + start_date}
+                hours=-from_date.hour,
+                minutes=-from_date.minute,
+                seconds=-from_date.second,
+                microseconds=-from_date.microsecond
+            ) + from_date}
 
-        if 'event_id' in args:
-            mongo_filter["event_id"] = args["event_id"]
-        if 'title' in args:
-            mongo_filter["title"] = re.compile(args["title"])
-        if 'affiliation_groups' in args:
+        if event_id:
+            mongo_filter["event_id"] = event_id
+        if title:
+            mongo_filter["title"] = re.compile(title)
+        if affiliation_groups:
             mongo_filter["affiliation"] = {
                 "$in": [
-                    re.compile(group) for group in args["affiliation_groups"]
+                    re.compile(group) for group in affiliation_groups
                 ]
             }
-        if 'classrooms' in args:
+        if classrooms:
             mongo_filter["classrooms"] = {
                 "$in": [
-                    re.compile(classroom) for classroom in args["classrooms"]
+                    re.compile(classroom) for classroom in classrooms
                 ]
             }
-        if 'teachers' in args:
+        if teachers:
             mongo_filter["teachers"] = {
                 "$in": [
-                    re.compile(teacher) for teacher in args["teachers"]
+                    re.compile(teacher) for teacher in teachers
                 ]
             }
 
         cursor = Query.db.planning_cyber.find(mongo_filter)
         cursor.sort("start_date", ASCENDING)
 
-        if 'limit' in args and args['limit'] > 0:
-            mongo_planning = cursor.limit(args['limit'])
+        if limit > 0:
+            mongo_planning = cursor.limit(limit)
         else:
             mongo_planning = cursor
 

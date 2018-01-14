@@ -25,12 +25,16 @@ SECRET_KEY = '#)_*d)if!(w3blr!#m$7c54d#k#kazkhqrz8$6ejmu3q(prt!r'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['ensibs.planningiut.fr']
+ALLOWED_HOSTS = [
+    'cyberplanningiut.fr',
+    'localhost'
+]
 
 
 # Application definition
 
 INSTALLED_APPS = [
+    'corsheaders',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -75,15 +79,21 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'planningcyber.wsgi.application'
 
+CORS_ORIGIN_ALLOW_ALL = True
+
+CORS_ORIGIN_WHITELIST = (
+    'cyberplanningiut.fr',
+    'localhost'
+)
 
 # Database
 # https://docs.djangoproject.com/en/1.11/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'djongo',
-        'NAME': 'planning',
-    }
+    # 'default': {
+    #     'ENGINE': 'djongo',
+    #     'NAME': 'planning',
+    # }
 }
 
 
