@@ -2,18 +2,16 @@ FROM python:3
 
 ENV PYTHONUNBUFFERED 1
 
-ARG PORT=3001
-ENV DJANGO_PORT $PORT
+ENV FLASK_APP /usr/src/app/app.py
+ENV FLASK_DEBUG 1
 
-EXPOSE $PORT
+EXPOSE 3001
 
-RUN mkdir /code
+WORKDIR /usr/src/app
 
-WORKDIR /code
+COPY requirements.txt ./
+RUN pip install --no-cache-dir -r requirements.txt
 
-ADD requirements.txt /code/
-RUN pip install -r requirements.txt
+COPY . .
 
-ADD . /code/
-
-CMD python3 manage.py runserver 0.0.0.0:${DJANGO_PORT}
+CMD flask run --host=0.0.0.0 --port=3001

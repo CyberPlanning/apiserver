@@ -57,20 +57,21 @@ class Query(graphene.ObjectType):
                               to_date=graphene.Argument(DateTime),
                               event_id=graphene.String(),
                               title=graphene.String(),
-                              affiliation_groups=graphene.List(graphene.String),
+                              affiliation_groups=graphene.List(
+                                  graphene.String),
                               classrooms=graphene.List(graphene.String),
                               teachers=graphene.List(graphene.String),
                               limit=graphene.Argument(graphene.Int)
                               )
 
     def resolve_planning(self, info, from_date,
-                                     to_date=None,
-                                     event_id=None,
-                                     title=None,
-                                     affiliation_groups=None,
-                                     classrooms=None,
-                                     teachers=None,
-                                     limit=0):
+                         to_date=None,
+                         event_id=None,
+                         title=None,
+                         affiliation_groups=None,
+                         classrooms=None,
+                         teachers=None,
+                         limit=0):
         mongo_filter = {"start_date": {"$gte": from_date}}
 
         if to_date:
@@ -125,3 +126,6 @@ class Query(graphene.ObjectType):
                   teachers=e['teachers'],
                   groups=e['groups'])
             for e in mongo_planning])
+
+
+schema = graphene.Schema(query=Query)
