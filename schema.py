@@ -5,6 +5,9 @@ from pymongo import MongoClient, ASCENDING
 from graphql.language import ast
 
 
+CLIENT = MongoClient("mongo", 27017)
+
+
 class DateTime(graphene.Scalar):
     """
     Un type Date reçu d'une requête GraphQL.
@@ -49,8 +52,7 @@ class Planning(graphene.ObjectType):
 
 
 class Query(graphene.ObjectType):
-    client = MongoClient("mongo", 27017)
-    db = client.planning
+    db = CLIENT.planning
     planning = graphene.Field(Planning,
                               from_date=graphene.Argument(DateTime,
                                                           required=True),
