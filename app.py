@@ -15,7 +15,7 @@ decoratedView = crossdomain(origin='*', headers=['content-type'])(GraphQLView.as
 ))
 
 app.add_url_rule(
-    '/',
+    '/graphql',
     view_func=decoratedView
 )
 
