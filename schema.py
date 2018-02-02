@@ -54,6 +54,7 @@ class Planning(graphene.ObjectType):
 class Query(graphene.ObjectType):
     db = CLIENT.planning
     planning = graphene.Field(Planning,
+                              collection=graphene.String(required=True),
                               from_date=graphene.Argument(DateTime,
                                                           required=True),
                               to_date=graphene.Argument(DateTime),
@@ -66,7 +67,9 @@ class Query(graphene.ObjectType):
                               limit=graphene.Argument(graphene.Int)
                               )
 
-    def resolve_planning(self, info, from_date,
+    def resolve_planning(self, info,
+                         collection,
+                         from_date,
                          to_date=None,
                          event_id=None,
                          title=None,
@@ -111,7 +114,7 @@ class Query(graphene.ObjectType):
                 ]
             }
 
-        cursor = Query.db.planning_cyber.find(mongo_filter)
+        cursor = Query.db[collection].find(mongo_filter)
         cursor.sort("start_date", ASCENDING)
 
         if limit > 0:
