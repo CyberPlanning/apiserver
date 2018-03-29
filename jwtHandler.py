@@ -5,24 +5,13 @@ from datetime import timedelta, datetime
 
 
 class JWTError(Exception):
-
-    def __init__(self, message, sub=None, status_code=401):
-        Exception.__init__(self)
-        self.message = message
+    def __init__(self, message, status_code=401):
+        super().__init__(self, message)
         self.status_code = status_code
-        self.sub = sub
+        self.message = message
 
     def __str__(self):
-        return "%s %s" % (self.message, self.sub)
-
-    def to_dict(self):
-        rv = {
-            'message': self.message,
-        }
-        if self.sub:
-            rv['reason'] = self.sub
-        print('[JWTError] To dict', rv)
-        return rv
+        return "%d: %s" % (self.status_code, self.message)
 
 
 def createJwtDefaultPayload():
@@ -74,17 +63,17 @@ def requestHandler(request):
     auth_header_prefix = current_app.config.get('JWT_AUTH_HEADER_PREFIX', 'Bearer')
 
     if not auth_header_value:
-        raise JWTError('No JWT header', 'Authorization header token not found', 400)
+        raise JWTError('No JWT header: Authorization header token not found', 400)
 
     parts = auth_header_value.split()
-    print("[JWT] token %s", parts)
+    print("[JWT] token %s" % parts)
 
     if parts[0].lower() != auth_header_prefix.lower():
-        raise JWTError('Invalid JWT header', 'Unsupported authorization type')
+        raise JWTError('Invalid JWT header: Unsupported authorization type')
     elif len(parts) == 1:
-        raise JWTError('Invalid JWT header', 'Token missing')
+        raise JWTError('Invalid JWT header: Token missing')
     elif len(parts) > 2:
-        raise JWTError('Invalid JWT header', 'Token contains spaces')
+        raise JWTError('Invalid JWT header: Token contains spaces')
 
     return jwtDecodeHandler(parts[1])
 

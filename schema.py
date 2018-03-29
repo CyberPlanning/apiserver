@@ -6,7 +6,7 @@ from graphql.language import ast
 
 import planning as planningData
 import authentification
-import jwtHandler
+from jwtHandler import JWTError, requestHandler
 
 
 # CLIENT = MongoClient("mongo", 27017)
@@ -42,9 +42,14 @@ def permissions(namespace, name):
 def token_required(fn):
     @wraps(fn)
     def decorator(self, info, *args, **kwargs):
-        token = jwtHandler.requestHandler(info.context['request'])
+        token = requestHandler(info.context['request'])
         info.context['token'] = token
         return fn(self, info, token, *args, **kwargs)
+        # try:
+        # except Exception as e:
+        #     print("Error:: %s" % e)
+        #     return e
+
     return decorator
 
 # Query
@@ -195,4 +200,4 @@ class Mutation(graphene.ObjectType):
     createUser = CreateUser.Field()
 
 
-schema = graphene.Schema(query=Query, mutation=Mutation)
+schema = graphene.Schema(query=Query, mutation=None)

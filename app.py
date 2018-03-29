@@ -13,9 +13,20 @@ app.debug = True
 app.config['JWT_SECRET_KEY'] = "Flag{Not_so_n00b}"
 
 
+class AuthorizationMiddleware(object):
+    def resolve(self, next, root, info, **args):
+        # print("Middleware", info.operation)
+        # raise Exception("Hacked by AuR3voirCTF")
+        return next(root, info, **args)
+
+
 class PlanningGraphQlView(GraphQLView):
     decorators = [
         crossdomain(origin='*', methods=['GET', 'POST'])
+    ]
+
+    middleware = [
+        # AuthorizationMiddleware()
     ]
 
     schema = schema
@@ -26,16 +37,16 @@ class PlanningGraphQlView(GraphQLView):
             'request': request,
         }
 
+    # def dispatch_request(self):
+    #     ret = super().dispatch_request()
+    #     print(ret.data, dir(ret))
+    #     return ret
+
+
 app.add_url_rule(
     '/graphql/',
     view_func=PlanningGraphQlView.as_view('graphql')
 )
-
-@app.errorhandler(JWTError)
-def authError(error):
-    response = jsonify(error.to_dict())
-    response.status_code = error.status_code
-    return response
 
 if __name__ == '__main__':
     app.run()
