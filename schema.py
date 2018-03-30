@@ -5,52 +5,11 @@ from pymongo import MongoClient
 from graphql.language import ast
 
 import planning as planningData
-import authentification
-from jwtHandler import JWTError, requestHandler
 
 
 # CLIENT = MongoClient("mongo", 27017)
 CLIENT = MongoClient("localhost", 27017)
 
-
-# Décorator
-
-def permissions(namespace, name):
-    permsName = "%s:%s" % (namespace, name)
-    permsAll = "%s:*" % namespace
-
-    def wrapper(fn):
-        @wraps(fn)
-        def decorator(self, info, *args, **kwargs):
-            context = info.context
-            if('token' not in context or
-                context['token'] is None or
-                'permission' not in context['token'] or
-                context['token']['permission'] is None):
-                return None
-            
-            perms = context['token']['permission']
-            if permsName in perms or permsAll in perms:
-                print('Perms %s for %s OK' % (perms, permsName))
-                return fn(self, info, *args, **kwargs)
-            else:
-                print('Perms %s for %s \033[31mDENY\033[0m' % (perms, permsName))
-                return None
-        return decorator
-    return wrapper
-
-def token_required(fn):
-    @wraps(fn)
-    def decorator(self, info, *args, **kwargs):
-        token = requestHandler(info.context['request'])
-        info.context['token'] = token
-        return fn(self, info, token, *args, **kwargs)
-        # try:
-        # except Exception as e:
-        #     print("Error:: %s" % e)
-        #     return e
-
-    return decorator
 
 # Query
 
@@ -93,37 +52,9 @@ class Event(graphene.ObjectType):
     teachers = graphene.List(graphene.String)
     groups = graphene.List(graphene.String)
 
-    @permissions('view', 'title')
-    def resolve_title(self, info, **args):
-        return self.title
-
-    @permissions('view', 'date')
-    def resolve_start_date(self, info, **args):
-        return self.start_date
-
-    @permissions('view', 'date')
-    def resolve_end_date(self, info, **args):
-        return self.end_date
-
-    @permissions('view', 'classrooms')
-    def resolve_classrooms(self, info, **args):
-        return self.classrooms
-
-    @permissions('view', 'teachers')
-    def resolve_teachers(self, info, **args):
-        return self.teachers
-
-    @permissions('view', 'groups')
-    def resolve_groups(self, info, **args):
-        return self.groups
-
 
 class Planning(graphene.ObjectType):
     events = graphene.List(Event)
-
-
-class Token(graphene.ObjectType):
-    token = graphene.String()
 
 
 class Query(graphene.ObjectType):
@@ -141,12 +72,7 @@ class Query(graphene.ObjectType):
                               limit=graphene.Argument(graphene.Int)
                               )
 
-    auth = graphene.Field(Token, login=graphene.String(required=True), password=graphene.String(required=True))
-
-    @token_required
-    def resolve_planning(self, info, token, **args):
-
-        print("\033[032mPlanning: \033[0m", info.context)
+    def resolve_planning(self, info, **args):
 
         db = CLIENT.planning
         mongo_planning = planningData.resolve(db, **args)
@@ -161,43 +87,5 @@ class Query(graphene.ObjectType):
                   groups=e['groups'])
             for e in mongo_planning])
 
-    def resolve_auth(self, info, **args):
-        print("\033[032mAuth: \033[0m", info.context)
 
-        db = CLIENT.planning
-        token = authentification.resolve(db, **args)
-
-        return Token(token)
-
-# Mutations
-
-class User(graphene.ObjectType):
-    username = graphene.String(required=True)
-    password = graphene.String(required=True)
-    permissions = graphene.List(graphene.String)
-
-
-class CreateUser(graphene.Mutation):
-    class Arguments:
-        username = graphene.String(required=True)
-        password = graphene.String(required=True)
-        permissions = graphene.List(graphene.String)
-
-    ok = graphene.Boolean()
-    user = graphene.Field(User)
-
-    @staticmethod
-    @token_required
-    def mutate(self, info, token, username, password, permissions):
-        print('User', token)
-        user = User(username=username, password=password, permissions=permissions)
-        ok = True
-        return CreateUser(user=user, ok=ok)
-
-
-class Mutation(graphene.ObjectType):
-
-    createUser = CreateUser.Field()
-
-
-schema = graphene.Schema(query=Query, mutation=None)
+schema = graphene.Schema(query=Query)
