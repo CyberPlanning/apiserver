@@ -66,7 +66,6 @@ def requestHandler(request):
         raise JWTError('No JWT header: Authorization header token not found', 400)
 
     parts = auth_header_value.split()
-    print("[JWT] token %s" % parts)
 
     if parts[0].lower() != auth_header_prefix.lower():
         raise JWTError('Invalid JWT header: Unsupported authorization type')

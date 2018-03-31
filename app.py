@@ -9,9 +9,7 @@ from schema_v2 import schema as schema_v2
 
 
 app = Flask(__name__)
-
-app.debug = True
-app.config['JWT_SECRET_KEY'] = "Flag{Not_so_n00b}"
+app.config.from_envvar('CYBERPLANNING_SETTINGS')
 
 
 class AuthorizationMiddleware(object):

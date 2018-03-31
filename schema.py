@@ -1,14 +1,10 @@
 import graphene
 import datetime
 from functools import wraps
-from pymongo import MongoClient
 from graphql.language import ast
 
+from mongo import getClient
 import planning as planningData
-
-
-# CLIENT = MongoClient("mongo", 27017)
-CLIENT = MongoClient("localhost", 27017)
 
 
 # Query
@@ -74,7 +70,7 @@ class Query(graphene.ObjectType):
 
     def resolve_planning(self, info, **args):
 
-        db = CLIENT.planning
+        db = getClient().planning
         mongo_planning = planningData.resolve(db, **args)
 
         return Planning(events=[

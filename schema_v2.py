@@ -1,16 +1,13 @@
 import graphene
 import datetime
 from functools import wraps
-from pymongo import MongoClient
 from graphql.language import ast
 
-import planning as planningData
-import authentification
 from jwtHandler import JWTError, requestHandler
-
-
-# CLIENT = MongoClient("mongo", 27017)
-CLIENT = MongoClient("localhost", 27017)
+from flask import current_app
+import authentification
+import planning as planningData
+from mongo import getClient
 
 
 # Décorator
@@ -42,9 +39,13 @@ def permissions(namespace, name):
 def token_required(fn):
     @wraps(fn)
     def decorator(self, info, *args, **kwargs):
-        token = requestHandler(info.context['request'])
-        info.context['token'] = token
-        return fn(self, info, token, *args, **kwargs)
+        try:
+            token = requestHandler(info.context['request'])
+            info.context['token'] = token
+            return fn(self, info, token, *args, **kwargs)
+        except Exception as e:
+            current_app.logger.info('[JWT] %s' % e)
+            return None
         # try:
         # except Exception as e:
         #     print("Error:: %s" % e)
@@ -148,7 +149,7 @@ class Query(graphene.ObjectType):
 
         print("\033[032mPlanning: \033[0m", info.context)
 
-        db = CLIENT.planning
+        db = getClient().planning
         mongo_planning = planningData.resolve(db, **args)
 
         return Planning(events=[
@@ -164,7 +165,7 @@ class Query(graphene.ObjectType):
     def resolve_auth(self, info, **args):
         print("\033[032mAuth: \033[0m", info.context)
 
-        db = CLIENT.planning
+        db = getClient().planning
         token = authentification.resolve(db, **args)
 
         return Token(token)
