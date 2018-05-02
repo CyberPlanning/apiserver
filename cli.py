@@ -7,7 +7,7 @@ import getpass
 from pymongo import MongoClient
 import bcrypt
 
-from permissions import PERMISSIONS
+from authorisation import PERMISSIONS
 
 
 class Color(Enum):
@@ -74,6 +74,14 @@ def parse_args():
     return args
 
 
+def permExist(perm):
+    namespace, name = perm.split(':')
+    if namespace in PERMISSIONS:
+        if name in PERMISSIONS[namespace] or name == '*':
+            return True
+    return False
+
+
 if __name__ == '__main__':
 
     parser = parse_args()
@@ -90,14 +98,16 @@ if __name__ == '__main__':
             print(' - % 10s, %s, [%s]' % (user['username'], user['hash'], ', '.join(user['permissions'])))
     elif parser.list_perms:
         print('[*] Available permission:')
-        for p in PERMISSIONS:
-            print(' - %s' % p)
+        for k, v in PERMISSIONS.items():
+            print(' - %s:*' % k)
+            for p in v:
+                print(' - %s:%s' % (k, p))
 
     else:
         if not parser.name:
             raise Exception('No name')
 
-        perms = [i for i in parser.perms if i in PERMISSIONS]
+        perms = [i for i in parser.perms if permExist(i)]
 
         if parser.add:
             # Check user not exist
@@ -125,4 +135,4 @@ if __name__ == '__main__':
                 print(ret)
 
         elif parser.update:
-            print('[!] WIP')
+            raise NotImplementedError()

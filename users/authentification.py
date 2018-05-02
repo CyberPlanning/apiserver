@@ -1,9 +1,14 @@
 import hashlib
 import bcrypt
 
-import jwtHandler
+import authorisation
 
 from flask import current_app
+
+
+class AuthError(Exception):
+    def __init__(self):
+        super().__init__("User or password not match")
 
 
 def getUserFromLogin(db, login):
@@ -11,7 +16,7 @@ def getUserFromLogin(db, login):
         'username': login
     })
     if cursor.count() == 0:
-        raise Exception('WIP user not found')
+        raise AuthError()
 
     return cursor.next()
 
@@ -26,9 +31,9 @@ def resolve(db, login, password):
     user = getUserFromLogin(db, login)
 
     if not bcrypt.checkpw(password.encode(), user['hash'].encode()):
-        raise Exception("WIP password not match")
+        raise AuthError()
 
-    payload = jwtHandler.createJwtDefaultPayload()
+    payload = authorisation.createJwtDefaultPayload()
     payload.update({
         'permission': user['permissions'],
         # 'id': user['_id'],

@@ -2,56 +2,13 @@ import graphene
 import datetime
 from functools import wraps
 from graphql.language import ast
-
-from jwtHandler import JWTError, requestHandler
 from flask import current_app
-import authentification
-import planning as planningData
+
 from mongo import getClient
+import planning as planningResolver
 
-
-# Décorator
-
-def permissions(namespace, name):
-    permsName = "%s:%s" % (namespace, name)
-    permsAll = "%s:*" % namespace
-
-    def wrapper(fn):
-        @wraps(fn)
-        def decorator(self, info, *args, **kwargs):
-            context = info.context
-            if('token' not in context or
-                context['token'] is None or
-                'permission' not in context['token'] or
-                context['token']['permission'] is None):
-                return None
-            
-            perms = context['token']['permission']
-            if permsName in perms or permsAll in perms:
-                print('Perms %s for %s OK' % (perms, permsName))
-                return fn(self, info, *args, **kwargs)
-            else:
-                print('Perms %s for %s \033[31mDENY\033[0m' % (perms, permsName))
-                return None
-        return decorator
-    return wrapper
-
-def token_required(fn):
-    @wraps(fn)
-    def decorator(self, info, *args, **kwargs):
-        try:
-            token = requestHandler(info.context['request'])
-            info.context['token'] = token
-            return fn(self, info, token, *args, **kwargs)
-        except Exception as e:
-            current_app.logger.info('[JWT] %s' % e)
-            return None
-        # try:
-        # except Exception as e:
-        #     print("Error:: %s" % e)
-        #     return e
-
-    return decorator
+from authorisation import (requestHandler, token_required, permissions)
+import users
 
 # Query
 
@@ -150,7 +107,7 @@ class Query(graphene.ObjectType):
         print("\033[032mPlanning: \033[0m", info.context)
 
         db = getClient().planning
-        mongo_planning = planningData.resolve(db, **args)
+        mongo_planning = planningResolver.resolve(db, **args)
 
         return Planning(events=[
             Event(title=e['title'],
@@ -189,9 +146,13 @@ class CreateUser(graphene.Mutation):
 
     @staticmethod
     @token_required
+    @permissions('user', 'create')
     def mutate(self, info, token, username, password, permissions):
         print('User', token)
         user = User(username=username, password=password, permissions=permissions)
+
+        # Create entry in db
+
         ok = True
         return CreateUser(user=user, ok=ok)
 
@@ -201,4 +162,4 @@ class Mutation(graphene.ObjectType):
     createUser = CreateUser.Field()
 
 
-schema = graphene.Schema(query=Query, mutation=None)
+schema = graphene.Schema(query=Query, mutation=Mutation)
