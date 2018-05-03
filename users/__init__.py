@@ -3,5 +3,6 @@
 
 from .authentification import (AuthError, getUserFromLogin, resolve)
 
+
 def create():
     pass

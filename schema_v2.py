@@ -10,8 +10,8 @@ import planning as planningResolver
 from authorisation import (requestHandler, token_required, permissions)
 import users
 
-# Query
 
+# Query
 class DateTime(graphene.Scalar):
     """
     Un type Date reçu d'une requête GraphQL.
@@ -99,7 +99,9 @@ class Query(graphene.ObjectType):
                               limit=graphene.Argument(graphene.Int)
                               )
 
-    auth = graphene.Field(Token, login=graphene.String(required=True), password=graphene.String(required=True))
+    auth = graphene.Field(Token,
+                          login=graphene.String(required=True),
+                          password=graphene.String(required=True))
 
     @token_required
     def resolve_planning(self, info, token, **args):
@@ -127,8 +129,8 @@ class Query(graphene.ObjectType):
 
         return Token(token)
 
-# Mutations
 
+# Mutations
 class User(graphene.ObjectType):
     username = graphene.String(required=True)
     password = graphene.String(required=True)

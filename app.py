@@ -15,7 +15,6 @@ app = Flask(__name__)
 app.config.from_envvar('CYBERPLANNING_SETTINGS')
 
 
-
 class PlanningGraphQlView(GraphQLView):
     decorators = [
         crossdomain(origin='*', methods=['GET', 'POST'])
@@ -28,6 +27,7 @@ class PlanningGraphQlView(GraphQLView):
         return {
             'request': request,
         }
+
 
 app.add_url_rule(
     '/graphql/',
@@ -47,7 +47,8 @@ class PlanningGraphQlViewV2(GraphQLView):
     def format_error(error):
         if hasattr(error, 'original_error') and error.original_error:
             original = error.original_error
-            print("\033[33mError\033[0m %s: %s" % (original.__class__.__name__, str(original)))
+            print("\033[33mError\033[0m %s: %s" %
+                  (original.__class__.__name__, str(original)))
 
             formatted = {"message": str(original)}
             if isinstance(original, AuthorisationError):
@@ -63,6 +64,7 @@ class PlanningGraphQlViewV2(GraphQLView):
             'request': request,
         }
 
+
 app.add_url_rule(
     '/graphql/v2/',
     view_func=PlanningGraphQlViewV2.as_view('graphqlv2')
@@ -70,5 +72,3 @@ app.add_url_rule(
 
 if __name__ == '__main__':
     app.run()
-
-

@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 # coding: utf-8
 
+
 class AuthorisationError(Exception):
     def __init__(self, message, status_code=401):
         super().__init__(self, message)

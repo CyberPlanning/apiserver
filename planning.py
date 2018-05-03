@@ -4,15 +4,15 @@ from pymongo import ASCENDING
 
 
 def resolve(db,
-        collection,
-        from_date,
-        to_date=None,
-        event_id=None,
-        title=None,
-        affiliation_groups=None,
-        classrooms=None,
-        teachers=None,
-        limit=0):
+            collection,
+            from_date,
+            to_date=None,
+            event_id=None,
+            title=None,
+            affiliation_groups=None,
+            classrooms=None,
+            teachers=None,
+            limit=0):
 
     mongo_filter = {"start_date": {"$gte": from_date}}
 

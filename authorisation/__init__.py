@@ -29,15 +29,16 @@ def permissions(namespace, name):
             if('token' not in context or
                 context['token'] is None or
                 'permission' not in context['token'] or
-                context['token']['permission'] is None):
+                    context['token']['permission'] is None):
                 return None
-            
+
             perms = context['token']['permission']
             if permsName in perms or permsAll in perms:
                 print('Perms %s for %s OK' % (perms, permsName))
                 return fn(self, info, *args, **kwargs)
             else:
-                print('Perms %s for %s \033[31mDENY\033[0m' % (perms, permsName))
+                print('Perms %s for %s \033[31mDENY\033[0m' % (
+                    perms, permsName))
                 return None
         return decorator
     return wrapper

@@ -95,7 +95,8 @@ if __name__ == '__main__':
         cursor = db.find()
         print('[*] Users:')
         for user in cursor:
-            print(' - % 10s, %s, [%s]' % (user['username'], user['hash'], ', '.join(user['permissions'])))
+            print(' - % 10s, %s, [%s]' % (user['username'],
+                                          user['hash'], ', '.join(user['permissions'])))
     elif parser.list_perms:
         print('[*] Available permission:')
         for k, v in PERMISSIONS.items():
@@ -117,7 +118,8 @@ if __name__ == '__main__':
             # ask password
             passwd = getpass.getpass('Password: ')
 
-            hashPass = bcrypt.hashpw(passwd.encode(), bcrypt.gensalt()).decode()
+            hashPass = bcrypt.hashpw(
+                passwd.encode(), bcrypt.gensalt()).decode()
 
             print('[!] Hash: %s' % hashPass)
 

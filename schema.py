@@ -8,7 +8,6 @@ import planning as planningData
 
 
 # Query
-
 class DateTime(graphene.Scalar):
     """
     Un type Date reçu d'une requête GraphQL.
@@ -59,16 +58,20 @@ class Event(graphene.ObjectType):
 
 class Planning(graphene.ObjectType):
     """
-    La `planning` est la liste des courses dont les caractéristiques correspondent à la requête effectuée.
+    La `planning` est la liste des courses dont les caractéristiques correspondent à la requête
+    effectuée.
     """
     events = graphene.List(Event)
 
 
 class Query(graphene.ObjectType):
     """
-    La requête permet de filtrer les cours que l'on veut obtenir en fonction de plusieurs paramètres:
-      * une date de début et de fin dans laquelle doit se trouver le cours, la date de début est obligatoire. S'il n'y a pas de date de fin elle sera mise au jour suivant de la date de début.
-      * une liste de groupe a qui les cours seront affiliés. Le groupe est nommé en fonction de l'année et du numéro de groupe, par exemple : le groupe 2 en 1er année aura '12' (Optionnel)
+    La requête permet de filtrer les cours que l'on veut obtenir en fonction de plusieurs
+    paramètres:
+      * une date de début et de fin dans laquelle doit se trouver le cours, la date de début est
+      obligatoire. S'il n'y a pas de date de fin elle sera mise au jour suivant de la date de début.
+      * une liste de groupe a qui les cours seront affiliés. Le groupe est nommé en fonction de
+      l'année et du numéro de groupe, par exemple : le groupe 2 en 1er année aura '12' (Optionnel)
       * une liste des salles et une liste des professeurs (Optionnel)
       * une limite de nombre de cours à retourner (Optionnel)
 
