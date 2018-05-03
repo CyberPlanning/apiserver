@@ -96,8 +96,7 @@ class Query(graphene.ObjectType):
                                   graphene.String),
                               classrooms=graphene.List(graphene.String),
                               teachers=graphene.List(graphene.String),
-                              limit=graphene.Argument(graphene.Int)
-                              )
+                              limit=graphene.Argument(graphene.Int))
 
     auth = graphene.Field(Token,
                           login=graphene.String(required=True),
@@ -125,7 +124,7 @@ class Query(graphene.ObjectType):
         print("\033[032mAuth: \033[0m", info.context)
 
         db = getClient().planning
-        token = authentification.resolve(db, **args)
+        token = users.resolve(db, **args)
 
         return Token(token)
 
@@ -151,7 +150,8 @@ class CreateUser(graphene.Mutation):
     @permissions('user', 'create')
     def mutate(self, info, token, username, password, permissions):
         print('User', token)
-        user = User(username=username, password=password, permissions=permissions)
+        user = User(username=username, password=password,
+                    permissions=permissions)
 
         # Create entry in db
 

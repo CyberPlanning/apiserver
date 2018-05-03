@@ -40,4 +40,4 @@ def resolve(db, login, password):
         'login': user['username'],
     })
 
-    return jwtHandler.jwtEncodeHandler(payload)
+    return authorisation.jwtEncodeHandler(payload)
