@@ -20,5 +20,5 @@
 
 ## User Auth
 
-+ Exception: User not found
-+ Exception: Password not match
++ AuthError: User not found
++ AuthError: Password not match

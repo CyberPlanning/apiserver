@@ -1,6 +1,8 @@
 #!/usr/bin/python3
 # coding: utf-8
 
+# from graphql import GraphQLError
+
 
 class AuthorisationError(Exception):
     def __init__(self, message, status_code=401):
@@ -10,6 +12,16 @@ class AuthorisationError(Exception):
 
     def __str__(self):
         return self.message
+
+    def toDict(self):
+        return {
+            'errors': [
+                {
+                    'message': self.message,
+                    'code': self.status_code
+                }
+            ]
+        }
 
 
 class JWTError(Exception):

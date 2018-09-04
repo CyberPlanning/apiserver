@@ -10,6 +10,7 @@ PERMISSIONS = {
         "classrooms",
         "groups",
         "title",
+        "id",
     ],
     "user": [
         "create",

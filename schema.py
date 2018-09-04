@@ -1,16 +1,17 @@
 import graphene
 import datetime
-from functools import wraps
 from graphql.language import ast
 
 from mongo import getClient
 import planning as planningData
+from authorisation import permissions
 
 
 # Query
 class DateTime(graphene.Scalar):
     """
     Un type Date reçu d'une requête GraphQL.
+
     Dans la requête, on s'attend à recevoir une date à l'un des formats
     suivants :
       * [year]-[month]-[day]
@@ -38,7 +39,9 @@ class DateTime(graphene.Scalar):
 
 class Event(graphene.ObjectType):
     """
-    Un `event` est un cours, il est définit par :
+    Un `event` est un cours.
+
+    Il est définit par :
       * un nom
       * une date de début et de fin
       * une liste de salles
@@ -55,12 +58,41 @@ class Event(graphene.ObjectType):
     teachers = graphene.List(graphene.String)
     groups = graphene.List(graphene.String)
 
+    @permissions('view', 'title')
+    def resolve_title(self, info, **args):
+        return self.title
+
+    @permissions('view', 'id')
+    def resolve_event_id(self, info, **args):
+        return self.event_id
+
+    @permissions('view', 'date')
+    def resolve_start_date(self, info, **args):
+        return self.start_date
+
+    @permissions('view', 'date')
+    def resolve_end_date(self, info, **args):
+        return self.end_date
+
+    @permissions('view', 'classrooms')
+    def resolve_classrooms(self, info, **args):
+        return self.classrooms
+
+    @permissions('view', 'teachers')
+    def resolve_teachers(self, info, **args):
+        return self.teachers
+
+    @permissions('view', 'groups')
+    def resolve_groups(self, info, **args):
+        return self.groups
+
 
 class Planning(graphene.ObjectType):
     """
     La `planning` est la liste des courses dont les caractéristiques correspondent à la requête
     effectuée.
     """
+
     events = graphene.List(Event)
 
 
@@ -103,7 +135,6 @@ class Query(graphene.ObjectType):
                               )
 
     def resolve_planning(self, info, **args):
-
         db = getClient().planning
         mongo_planning = planningData.resolve(db, **args)
 

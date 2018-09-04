@@ -26,30 +26,21 @@ def permissions(namespace, name):
         @wraps(fn)
         def decorator(self, info, *args, **kwargs):
             context = info.context
-            if('token' not in context or
-                context['token'] is None or
-                'permission' not in context['token'] or
-                    context['token']['permission'] is None):
+            token = context.get('token', None)
+            if token is None:
                 return None
 
-            perms = context['token']['permission']
+            perms = token.get('permission', None)
+            if perms is None:
+                return None
+
             if permsName in perms or permsAll in perms:
-                print('Perms %s for %s OK' % (perms, permsName))
+                # print('Perms %s for %s OK' % (perms, permsName))
                 return fn(self, info, *args, **kwargs)
             else:
-                print('Perms %s for %s \033[31mDENY\033[0m' % (
-                    perms, permsName))
+                # print('Perms %s for %s \033[31mDENY\033[0m' % (
+                    # perms, permsName))
                 return None
         return decorator
     return wrapper
 
-
-def token_required(fn):
-    @wraps(fn)
-    def decorator(self, info, *args, **kwargs):
-        # try:
-        token = requestHandler(info.context['request'])
-        info.context['token'] = token
-        return fn(self, info, token, *args, **kwargs)
-
-    return decorator
