@@ -14,9 +14,9 @@ DEFAULT_ALGORITHM = 'HS256'
 def createJwtDefaultPayload():
     iat = datetime.utcnow()
     exp = iat + \
-        current_app.config.get('JWT_EXPIRATION_DELTA', timedelta(seconds=300))
+        timedelta(seconds=current_app.config.get('JWT_EXPIRATION_DELTA', 300))
     nbf = iat + \
-        current_app.config.get('JWT_NOT_BEFORE_DELTA', timedelta(seconds=0))
+        timedelta(seconds=current_app.config.get('JWT_NOT_BEFORE_DELTA', 0))
     return {'exp': exp, 'iat': iat, 'nbf': nbf}
 
 
@@ -40,7 +40,7 @@ def jwtEncodeHandler(payload):
 def jwtDecodeHandler(token):
     secret = current_app.config.get('JWT_SECRET_KEY')
     algorithm = current_app.config.get('JWT_ALGORITHM', DEFAULT_ALGORITHM)
-    leeway = current_app.config.get('JWT_LEEWAY', timedelta(seconds=10))
+    leeway = timedelta(seconds=current_app.config.get('JWT_LEEWAY', 10))
 
     verify_claims = current_app.config.get(
         'JWT_VERIFY_CLAIMS', ['signature'] + DEFAULT_REQUIRED_CLAIMS)
