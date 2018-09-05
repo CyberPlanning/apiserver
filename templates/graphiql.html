@@ -1,0 +1,151 @@
+<!--
+The request to this GraphQL server provided the header "Accept: text/html"
+and as a result has been presented GraphiQL - an in-browser IDE for
+exploring GraphQL.
+If you wish to receive JSON, provide the header "Accept: application/json" or
+add "&raw" to the end of the URL within a browser.
+-->
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>{{graphiql_html_title|default("GraphiQL", true)}}</title>
+    <style>
+        body, html {
+            height: 100vh;
+            width: 100vw;
+            margin: 0;
+        }
+        body {
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        #graphiql {
+            flex: 1;
+        }
+        .jwt-token {
+            background: linear-gradient(#f7f7f7, #e2e2e2);
+            border-bottom: 1px solid #d0d0d0;
+            font-family: system, -apple-system, 'San Francisco', '.SFNSDisplay-Regular', 'Segoe UI', Segoe, 'Segoe WP', 'Helvetica Neue', helvetica, 'Lucida Grande', arial, sans-serif;
+            padding: 7px 14px 6px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+        }
+
+        .jwt-token > label {
+            height: 28px;
+            line-height: 28px;
+            padding-right: 5px;
+        }
+
+        .jwt-token > input {
+            flex: 1;
+        }
+
+
+    </style>
+    <meta name="referrer" content="no-referrer">
+    <link href="//cdn.jsdelivr.net/npm/graphiql@{{graphiql_version}}/graphiql.css" rel="stylesheet" />
+    <script src="//cdn.jsdelivr.net/fetch/0.9.0/fetch.min.js"></script>
+    <script src="//cdn.jsdelivr.net/react/15.0.0/react.min.js"></script>
+    <script src="//cdn.jsdelivr.net/react/15.0.0/react-dom.min.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/graphiql@{{graphiql_version}}/graphiql.min.js"></script>
+</head>
+
+<body>
+    <div class="jwt-token">
+        <label for="jwt-token">JWT Token :</label>
+        <input id="jwt-token" placeholder="JWT Token goes here">
+    </div>
+    <div id="graphiql">Loading...</div>
+    <script>
+        document.getElementById('jwt-token').value = localStorage.getItem('graphiql:jwtToken');
+        // Collect the URL parameters
+        var parameters = {};
+        window.location.search.substr(1).split('&').forEach(function (entry) {
+            var eq = entry.indexOf('=');
+            if (eq >= 0) {
+                parameters[decodeURIComponent(entry.slice(0, eq))] =
+                    decodeURIComponent(entry.slice(eq + 1));
+            }
+        });
+        // Produce a Location query string from a parameter object.
+        function locationQuery(params) {
+            return '?' + Object.keys(params).map(function (key) {
+                return encodeURIComponent(key) + '=' +
+                    encodeURIComponent(params[key]);
+            }).join('&');
+        }
+        // Derive a fetch URL from the current URL, sans the GraphQL parameters.
+        var graphqlParamNames = {
+            query: true,
+            variables: true,
+            operationName: true
+        };
+        var otherParams = {};
+        for (var k in parameters) {
+            if (parameters.hasOwnProperty(k) && graphqlParamNames[k] !== true) {
+                otherParams[k] = parameters[k];
+            }
+        }
+        var fetchURL = locationQuery(otherParams);
+        // Defines a GraphQL fetcher using the fetch API.
+        function graphQLFetcher(graphQLParams) {
+            const jwtToken = document.getElementById('jwt-token').value;
+
+            const headers = {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            }
+            if (jwtToken) {
+                localStorage.setItem('graphiql:jwtToken', jwtToken);
+                headers['Authorization'] = `Bearer ${jwtToken}`
+            }
+            return fetch(fetchURL, {
+                method: 'post',
+                headers: headers,
+                body: JSON.stringify(graphQLParams),
+                credentials: 'include',
+            }).then(function (response) {
+                return response.text();
+            }).then(function (responseBody) {
+                try {
+                    return JSON.parse(responseBody);
+                } catch (error) {
+                    return responseBody;
+                }
+            });
+        }
+        // When the query and variables string is edited, update the URL bar so
+        // that it can be easily shared.
+        function onEditQuery(newQuery) {
+            parameters.query = newQuery;
+            updateURL();
+        }
+
+        function onEditVariables(newVariables) {
+            parameters.variables = newVariables;
+            updateURL();
+        }
+
+        function onEditOperationName(newOperationName) {
+            parameters.operationName = newOperationName;
+            updateURL();
+        }
+
+        function updateURL() {
+            history.replaceState(null, null, locationQuery(parameters));
+        }
+        // Render <GraphiQL /> into the body.
+        ReactDOM.render(
+            React.createElement(GraphiQL, {
+                fetcher: graphQLFetcher
+            }),
+            document.getElementById('graphiql')
+        );
+    </script>
+</body>
+
+</html>

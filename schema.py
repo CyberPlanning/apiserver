@@ -1,20 +1,21 @@
 import graphene
 import datetime
-import re
-from pymongo import MongoClient, ASCENDING
 from graphql.language import ast
 
+from mongo import getClient
+import planning as planningData
+from authorisation import permissions
 
-CLIENT = MongoClient("mongo", 27017)
 
-
+# Query
 class DateTime(graphene.Scalar):
     """
     Un type Date reçu d'une requête GraphQL.
+
     Dans la requête, on s'attend à recevoir une date à l'un des formats
     suivants :
-        - [year]-[month]-[day]
-        - [year]-[month]-[day]T[hour]:[minute]:[second].[millisecond]
+      * [year]-[month]-[day]
+      * [year]-[month]-[day]T[hour]:[minute]:[second].[millisecond]
     Suite au parsing, la date est retournée au format datetime.
     """
 
@@ -37,6 +38,17 @@ class DateTime(graphene.Scalar):
 
 
 class Event(graphene.ObjectType):
+    """
+    Un `event` est un cours.
+
+    Il est définit par :
+      * un nom
+      * une date de début et de fin
+      * une liste de salles
+      * une liste de professeurs
+      * une liste des groups qui y participent
+    """
+
     title = graphene.String()
     start_date = DateTime()
     end_date = DateTime()
@@ -46,13 +58,67 @@ class Event(graphene.ObjectType):
     teachers = graphene.List(graphene.String)
     groups = graphene.List(graphene.String)
 
+    @permissions('view', 'title')
+    def resolve_title(self, info, **args):
+        return self.title
+
+    @permissions('view', 'id')
+    def resolve_event_id(self, info, **args):
+        return self.event_id
+
+    @permissions('view', 'date')
+    def resolve_start_date(self, info, **args):
+        return self.start_date
+
+    @permissions('view', 'date')
+    def resolve_end_date(self, info, **args):
+        return self.end_date
+
+    @permissions('view', 'classrooms')
+    def resolve_classrooms(self, info, **args):
+        return self.classrooms
+
+    @permissions('view', 'teachers')
+    def resolve_teachers(self, info, **args):
+        return self.teachers
+
+    @permissions('view', 'groups')
+    def resolve_groups(self, info, **args):
+        return self.groups
+
 
 class Planning(graphene.ObjectType):
+    """
+    La `planning` est la liste des courses dont les caractéristiques correspondent à la requête
+    effectuée.
+    """
+
     events = graphene.List(Event)
 
 
 class Query(graphene.ObjectType):
-    db = CLIENT.planning
+    """
+    La requête permet de filtrer les cours que l'on veut obtenir en fonction de plusieurs
+    paramètres:
+      * une date de début et de fin dans laquelle doit se trouver le cours, la date de début est
+      obligatoire. S'il n'y a pas de date de fin elle sera mise au jour suivant de la date de début.
+      * une liste de groupe a qui les cours seront affiliés. Le groupe est nommé en fonction de
+      l'année et du numéro de groupe, par exemple : le groupe 2 en 1er année aura '12' (Optionnel)
+      * une liste des salles et une liste des professeurs (Optionnel)
+      * une limite de nombre de cours à retourner (Optionnel)
+
+    Exemple:
+    ```
+    query test {
+        planning(collection: "planning_cyber", fromDate: "2018-04-30") {
+            events {
+                title
+                classrooms
+            }
+        }
+    }
+    ```
+    """
     planning = graphene.Field(Planning,
                               collection=graphene.String(required=True),
                               from_date=graphene.Argument(DateTime,
@@ -64,63 +130,13 @@ class Query(graphene.ObjectType):
                                   graphene.String),
                               classrooms=graphene.List(graphene.String),
                               teachers=graphene.List(graphene.String),
-                              limit=graphene.Argument(graphene.Int)
+                              limit=graphene.Argument(graphene.Int),
+                              description='Planning'
                               )
 
-    def resolve_planning(self, info,
-                         collection,
-                         from_date,
-                         to_date=None,
-                         event_id=None,
-                         title=None,
-                         affiliation_groups=None,
-                         classrooms=None,
-                         teachers=None,
-                         limit=0):
-        mongo_filter = {"start_date": {"$gte": from_date}}
-
-        if to_date:
-            mongo_filter["end_date"] = {"$lte": to_date}
-        else:
-            # le jour suivant à 0h, 0min, 0s, 0ms
-            mongo_filter["end_date"] = {"$lte": datetime.timedelta(
-                days=1,
-                hours=-from_date.hour,
-                minutes=-from_date.minute,
-                seconds=-from_date.second,
-                microseconds=-from_date.microsecond
-            ) + from_date}
-
-        if event_id:
-            mongo_filter["event_id"] = event_id
-        if title:
-            mongo_filter["title"] = re.compile(title)
-        if affiliation_groups:
-            mongo_filter["affiliation"] = {
-                "$in": [
-                    re.compile(group) for group in affiliation_groups
-                ]
-            }
-        if classrooms:
-            mongo_filter["classrooms"] = {
-                "$in": [
-                    re.compile(classroom) for classroom in classrooms
-                ]
-            }
-        if teachers:
-            mongo_filter["teachers"] = {
-                "$in": [
-                    re.compile(teacher) for teacher in teachers
-                ]
-            }
-
-        cursor = Query.db[collection].find(mongo_filter)
-        cursor.sort("start_date", ASCENDING)
-
-        if limit > 0:
-            mongo_planning = cursor.limit(limit)
-        else:
-            mongo_planning = cursor
+    def resolve_planning(self, info, **args):
+        db = getClient().planning
+        mongo_planning = planningData.resolve(db, **args)
 
         return Planning(events=[
             Event(title=e['title'],

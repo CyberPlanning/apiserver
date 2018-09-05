@@ -27,7 +27,6 @@ def crossdomain(origin=None, methods=None, headers=None,
             if automatic_options and request.method == 'OPTIONS':
                 resp = current_app.make_default_options_response()
             else:
-                print(request.headers)
                 resp = make_response(f(*args, **kwargs))
             if not attach_to_all and request.method != 'OPTIONS':
                 return resp
