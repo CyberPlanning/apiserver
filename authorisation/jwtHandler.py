@@ -68,7 +68,6 @@ def jwtDecodeHandler(token):
 
 
 def requestHandler(request):
-    print("[JWT] Handle request")
     auth_header_value = request.headers.get('Authorization', None)
     auth_header_prefix = current_app.config.get(
         'JWT_AUTH_HEADER_PREFIX', 'Bearer')

@@ -19,14 +19,14 @@ def resolve(db,
     if to_date:
         mongo_filter["end_date"] = {"$lte": to_date}
     else:
-        # le jour suivant à 0h, 0min, 0s, 0ms
-        mongo_filter["end_date"] = {"$lte": datetime.timedelta(
-            days=1,
-            hours=-from_date.hour,
-            minutes=-from_date.minute,
-            seconds=-from_date.second,
-            microseconds=-from_date.microsecond
-        ) + from_date}
+        # the next day at 0h, 0min, 0s, 0ms
+        to_date = from_date.replace(
+            hour=0,
+            minute=0,
+            second=0,
+            microsecond=0
+        ) + datetime.timedelta(days=1)
+        mongo_filter["end_date"] = {"$lte": to_date}
 
     if event_id:
         mongo_filter["event_id"] = event_id
