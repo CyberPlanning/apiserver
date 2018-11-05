@@ -1,6 +1,8 @@
-from flask import Flask, jsonify, current_app, abort, request, render_template
-from flask_graphql import GraphQLView
-from functools import wraps
+from flask import Flask, jsonify, current_app, abort, request, render_template, Response
+from graphql_server import (HttpQueryError, default_format_error,
+                            encode_execution_results, json_encode,
+                            load_json_body, run_http_query)
+from functools import wraps, partial
 
 from crossdomain import crossdomain
 
@@ -15,39 +17,63 @@ app = Flask(__name__)
 app.config.from_envvar('CYBERPLANNING_SETTINGS')
 
 
-class PlanningGraphQlView(GraphQLView):
-    decorators = [
-        crossdomain(origin='*', methods=['GET', 'POST'])
-    ]
+@app.route('/graphql/', methods=['GET', 'POST', 'PUT', 'DELETE'])
+@crossdomain(origin='*', methods=['GET', 'POST'])
+def graphql():
+    request_method = request.method.lower()
+    if request_method == 'get':
+        return render_template(
+            'graphiql.html',
+            graphiql_version="0.11.11",
+            graphiql_html_title="Cyber GraphiQL",
+        )
+    
+    token = requestHandler(request)
 
-    schema = schema
-    graphiql = True  # for having the GraphiQL interface
-    graphiql_version = '0.11.11'
-    graphiql_html_title = 'Cyberplanning API'
+    try:
+        data = load_json_body(request.data.decode('utf8'))
 
-    def get_context(self):
-        # Check JWT token
-        token = requestHandler(request)
-        app.logger.info('Token %s' % token)
-
-        return {
+        pretty = request.args.get('pretty')
+        context = {
             'token': token
         }
 
-    def render_graphiql(self, params, result):
-        return render_template(
-            'graphiql.html',
-            params=params,
-            result=result,
-            graphiql_version=self.graphiql_version,
-            graphiql_html_title=self.graphiql_html_title,
+        execution_results, _ = run_http_query(
+            schema,
+            request_method,
+            data,
+            query_data=request.args,
+            batch_enabled=False,
+            catch=False,
+            backend=None,
+
+            # Execute options
+            root=None,
+            context=context,
+            middleware=None,
+        )
+        result, status_code = encode_execution_results(
+            execution_results,
+            is_batch=False,
+            format_error=default_format_error,
+            encode=partial(json_encode, pretty=pretty)
         )
 
+        return Response(
+            result,
+            status=status_code,
+            content_type='application/json'
+        )
 
-app.add_url_rule(
-    '/graphql/',
-    view_func=PlanningGraphQlView.as_view('graphql')
-)
+    except HttpQueryError as e:
+        return Response(
+            json_encode.encode({
+                'errors': [default_format_error(e)]
+            }),
+            status=e.status_code,
+            headers=e.headers,
+            content_type='application/json'
+        )
 
 
 @app.route('/auth/', methods=['POST'])
