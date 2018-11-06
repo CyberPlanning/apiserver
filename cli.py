@@ -7,7 +7,7 @@ import getpass
 from pymongo import MongoClient
 import bcrypt
 
-from authorisation import PERMISSIONS
+from cyberapi.authorization import PERMISSIONS
 
 
 class Color(Enum):

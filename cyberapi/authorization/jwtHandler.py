@@ -3,7 +3,7 @@ from flask import current_app
 
 from datetime import timedelta, datetime
 
-from .error import (AuthorisationError, JWTError)
+from .error import (AuthorizationError, JWTError)
 
 # Constants
 
@@ -60,11 +60,11 @@ def jwtDecodeHandler(token):
     try:
         return jwt.decode(token, secret, options=options, algorithms=[algorithm], leeway=leeway)
     except jwt.InvalidSignatureError as e1:
-        raise AuthorisationError(str(e1))
+        raise AuthorizationError(str(e1))
     except jwt.DecodeError as e2:
-        raise AuthorisationError("Unable to decode token.")
+        raise AuthorizationError("Unable to decode token.")
     except jwt.InvalidTokenError as e3:
-        raise AuthorisationError(str(e3))
+        raise AuthorizationError(str(e3))
 
 
 def requestHandler(request):
@@ -73,17 +73,17 @@ def requestHandler(request):
         'JWT_AUTH_HEADER_PREFIX', 'Bearer')
 
     if not auth_header_value:
-        raise AuthorisationError(
+        raise AuthorizationError(
             'No JWT header: Authorization header token not found', 400)
 
     parts = auth_header_value.split()
 
     if parts[0].lower() != auth_header_prefix.lower():
-        raise AuthorisationError(
+        raise AuthorizationError(
             'Invalid JWT header: Unsupported authorization type')
     elif len(parts) == 1:
-        raise AuthorisationError('Invalid JWT header: Token missing')
+        raise AuthorizationError('Invalid JWT header: Token missing')
     elif len(parts) > 2:
-        raise AuthorisationError('Invalid JWT header: Token contains spaces')
+        raise AuthorizationError('Invalid JWT header: Token contains spaces')
 
     return jwtDecodeHandler(parts[1])

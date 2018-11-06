@@ -2,9 +2,9 @@ import graphene
 import datetime
 from graphql.language import ast
 
-from mongo import getClient
-import planning as planningData
-from authorisation import permissions
+from .mongo import getClient
+from .planning import resolve
+from .authorization import permissions
 
 
 # Query
@@ -136,7 +136,7 @@ class Query(graphene.ObjectType):
 
     def resolve_planning(self, info, **args):
         db = getClient().planning
-        mongo_planning = planningData.resolve(db, **args)
+        mongo_planning = resolve(db, **args)
 
         return Planning(events=[
             Event(title=e['title'],

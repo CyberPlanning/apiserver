@@ -1,7 +1,7 @@
 #!/bin/bash
 
-export FLASK_APP=app.py
-export CYBERPLANNING_SETTINGS=./config/dev.cfg
+export FLASK_APP=./cyberapi/app.py
+export CYBERPLANNING_SETTINGS=../config/dev.cfg
 export FLASK_DEBUG=True
 
 flask run --host=localhost --port=3001

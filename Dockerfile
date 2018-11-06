@@ -1,9 +1,9 @@
 FROM python:3
 
-ENV PYTHONUNBUFFERED 1
+# ENV PYTHONUNBUFFERED 1
 
-ENV FLASK_APP /usr/src/app/app.py
-ENV FLASK_DEBUG 1
+ENV FLASK_APP /usr/src/app/cyberapi/app.py
+ENV CYBERPLANNING_SETTINGS /usr/src/app/config/prod.cfg
 
 EXPOSE 3001
 

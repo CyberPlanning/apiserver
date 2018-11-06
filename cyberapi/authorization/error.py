@@ -4,7 +4,7 @@
 # from graphql import GraphQLError
 
 
-class AuthorisationError(Exception):
+class AuthorizationError(Exception):
     def __init__(self, message, status_code=401):
         super().__init__(self, message)
         self.status_code = status_code

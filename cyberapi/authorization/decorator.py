@@ -1,20 +1,21 @@
-#!/usr/bin/python3
-# coding: utf-8
-
 from functools import wraps
 
-from .jwtHandler import (
-    AuthorisationError,
-    createJwtDefaultPayload,
-    jwtEncodeHandler,
-    jwtDecodeHandler,
-    requestHandler
-)
-from .permissions import (PERMISSIONS, checkPermissionExist)
-from .error import (JWTError, AuthorisationError)
+from .permissions import PERMISSIONS
 
 
-# Décorator for Schema
+def checkPermissionExist(fn):
+    @wraps(fn)
+    def decorator(namespace, name):
+        if namespace not in PERMISSIONS:
+            raise Exception(
+                'Namespace %s not in available permissions' % namespace)
+
+        if name not in PERMISSIONS[namespace]:
+            raise Exception(
+                'Permission name %s not in namespace %s' % (name, namespace))
+
+        return fn(namespace, name)
+    return decorator
 
 @checkPermissionExist
 def permissions(namespace, name):
@@ -43,4 +44,3 @@ def permissions(namespace, name):
                 return None
         return decorator
     return wrapper
-
