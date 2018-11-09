@@ -37,6 +37,24 @@ class DateTime(graphene.Scalar):
                                               "%Y-%m-%dT%H:%M:%S.%f")
 
 
+class Collection(graphene.Enum):
+    CYBER = 1
+    HACK2G2 = 2
+
+    @property
+    def description(self):
+        return "%s events" % self.name.lower()
+        
+    @property
+    def collection_name(self):
+        if self == Collection.CYBER:
+            return 'planning_cyber'
+        elif self == Collection.HACK2G2:
+            return 'planning_hack2g2'
+        else:
+            return 'Impossible'
+
+
 class Event(graphene.ObjectType):
     """
     Un `event` est un cours.
@@ -110,7 +128,7 @@ class Query(graphene.ObjectType):
     Exemple:
     ```
     query test {
-        planning(collection: "planning_cyber", fromDate: "2018-04-30") {
+        planning(collection: CYBER, fromDate: "2018-04-30") {
             events {
                 title
                 classrooms
@@ -120,7 +138,7 @@ class Query(graphene.ObjectType):
     ```
     """
     planning = graphene.Field(Planning,
-                              collection=graphene.String(required=True),
+                              collection=Collection(required=True),
                               from_date=graphene.Argument(DateTime,
                                                           required=True),
                               to_date=graphene.Argument(DateTime),
@@ -136,6 +154,10 @@ class Query(graphene.ObjectType):
 
     def resolve_planning(self, info, **args):
         db = getClient().planning
+
+        collection = Collection.get(args['collection'])
+        args.update({'collection': collection})
+
         mongo_planning = resolve(db, **args)
 
         return Planning(events=[

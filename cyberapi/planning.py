@@ -51,7 +51,7 @@ def resolve(db,
             ]
         }
 
-    cursor = db[collection].find(mongo_filter)
+    cursor = db[collection.collection_name].find(mongo_filter)
     cursor.sort("start_date", ASCENDING)
 
     return cursor.limit(limit)
