@@ -1,8 +1,11 @@
-from flask import Flask, jsonify, current_app, request, render_template, Response, json
+from flask import Flask, jsonify, current_app, request, render_template, Response, json, abort, redirect, url_for
 from graphql_server import (HttpQueryError, default_format_error,
                             encode_execution_results, json_encode,
                             load_json_body, run_http_query)
 from functools import wraps, partial
+from datetime import datetime
+from bson import ObjectId
+
 
 from .crossdomain import crossdomain
 from .authorization import AuthorizationError, requestHandler
@@ -12,6 +15,7 @@ from .schema import schema
 
 
 app = Flask(__name__)
+app.config.from_object('cyberapi.settings.Default')
 app.config.from_envvar('CYBERPLANNING_SETTINGS')
 
 
@@ -102,6 +106,63 @@ def token():
 
     token = generate_token(login, duration)
     return jsonify({'token': token})
+
+
+PLANNING_CUSTOM = "planning_custom"
+GARBAGE_CUSTOM = "garbage_custom"
+
+@app.route('/admin/<token>/', methods=['GET'], defaults={'action': None, 'eventid': None}, endpoint='adminindex')
+@app.route('/admin/<token>/save/', methods=['POST'], defaults={'action': 'save', 'eventid': None})
+@app.route('/admin/<token>/<action>/<eventid>/', methods=['GET', 'POST'])
+def admin(token, action=None, eventid=None):
+    if app.config.get('ADMIN_TOKEN', None) != token:
+        abort(Response('Et nn rapé :)'))
+    
+    db = getClient().planning
+
+    if request.method == 'POST':
+        if action == 'save':
+            try:
+                event = {
+                    'title': request.form['title'],
+                    'description': request.form['desc'],
+                    'stakeholders': list(request.form['stake']),
+                    'locations': list(request.form['location']),
+                    'start_date': datetime.strptime(request.form['startdate'] + " " + request.form['starttime'], "%Y-%m-%d %H:%M"),
+                    'end_date': datetime.strptime(request.form['enddate'] + " " + request.form['endtime'], "%Y-%m-%d %H:%M")
+                }
+            except ValueError:
+                return redirect(url_for('adminindex', token=token), code=302)
+
+            if eventid:
+                # new event
+                db[PLANNING_CUSTOM].update_one({'_id': ObjectId(eventid)}, {'$set': event})
+            else:
+                # save event
+                db[PLANNING_CUSTOM].insert_one(event)
+
+        return redirect(url_for('adminindex', token=token), code=302)
+    elif request.method == 'GET':
+
+        current_event = None
+
+        if eventid:
+            try:
+                event = db[PLANNING_CUSTOM].find({'_id': ObjectId(eventid)}).next()
+                if event:
+                    # remove event
+                    if action == 'remove':
+                        db[GARBAGE_CUSTOM].insert_one(event)
+                        db[PLANNING_CUSTOM].delete_one({'_id': event['_id']})
+
+                    elif action == 'update':
+                        # get event data
+                        current_event = event
+            except StopIteration:
+                pass
+
+        return render_template('editor.html', customs=db[PLANNING_CUSTOM].find(), token=token, eventid=eventid, event=current_event)
+
 
 
 @app.errorhandler(HttpQueryError)
