@@ -126,8 +126,8 @@ def admin(token, action=None, eventid=None):
                 event = {
                     'title': request.form['title'],
                     'description': request.form['desc'],
-                    'stakeholders': list(request.form['stake']),
-                    'locations': list(request.form['location']),
+                    'stakeholders': [request.form['stake']],
+                    'locations': [request.form['location']],
                     'start_date': datetime.strptime(request.form['startdate'] + " " + request.form['starttime'], "%Y-%m-%d %H:%M"),
                     'end_date': datetime.strptime(request.form['enddate'] + " " + request.form['endtime'], "%Y-%m-%d %H:%M")
                 }
