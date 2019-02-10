@@ -1,0 +1,16 @@
+version: '3'
+
+services:
+  serveur:
+    build:
+      context: apiserver
+    image: cps:latest
+    depends_on:
+      - mongo
+    links:
+      - mongo
+    ports:
+      - "127.0.0.1:3001:3001"
+
+  mongo:
+    image: mongo:latest
