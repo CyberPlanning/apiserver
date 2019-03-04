@@ -73,6 +73,21 @@ def resolve_cyber(db, **args):
             groups=e['groups'])
     for e in res]
 
+def resolve_info(db, **args):
+    args.update({
+        'collection': 'planning_info'
+    })
+    res = resolve(db, **args)
+    return [
+        Event(title=e['title'],
+            start_date=e['start_date'],
+            end_date=e['end_date'],
+            event_id=e['event_id'],
+            classrooms=e['classrooms'],
+            teachers=e['teachers'],
+            groups=e['groups'])
+    for e in res]
+
 
 def resolve_hack2g2(db, **args):
     args.update({

@@ -6,6 +6,7 @@ class Collection(graphene.Enum):
     CYBER = 1
     HACK2G2 = 2
     CUSTOM = 3
+    INFO = 3
 
     @property
     def description(self):
@@ -18,5 +19,7 @@ class Collection(graphene.Enum):
             return resolve_hack2g2(db, **args)
         elif self == Collection.CUSTOM:
             return resolve_custom(db, **args)
+        elif self == Collection.INFO:
+            return resolve_info(db, **args)
         else:
             return []
