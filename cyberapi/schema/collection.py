@@ -6,7 +6,7 @@ class Collection(graphene.Enum):
     CYBER = 1
     HACK2G2 = 2
     CUSTOM = 3
-    INFO = 3
+    INFO = 4
 
     @property
     def description(self):
