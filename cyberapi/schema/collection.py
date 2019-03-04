@@ -1,6 +1,6 @@
 import graphene
 
-from .resolver import resolve_custom, resolve_cyber, resolve_hack2g2
+from .resolver import resolve_info, resolve_custom, resolve_cyber, resolve_hack2g2
 
 class Collection(graphene.Enum):
     CYBER = 1
