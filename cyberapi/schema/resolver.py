@@ -70,7 +70,8 @@ def resolve_cyber(db, **args):
             event_id=e['event_id'],
             classrooms=e['classrooms'],
             teachers=e['teachers'],
-            groups=e['groups'])
+            groups=e['groups'],
+            affiliations=e['affiliation'])
     for e in res]
 
 def resolve_info(db, **args):
@@ -85,7 +86,8 @@ def resolve_info(db, **args):
             event_id=e['event_id'],
             classrooms=e['classrooms'],
             teachers=e['teachers'],
-            groups=e['groups'])
+            groups=e['groups'],
+            affiliations=e['affiliation'])
     for e in res]
 
 
@@ -101,7 +103,8 @@ def resolve_hack2g2(db, **args):
             event_id=e['event_id'],
             classrooms=e['classrooms'],
             teachers=e['teachers'],
-            groups=e['groups'])
+            groups=e['groups'],
+            affiliations=e['affiliation'])
     for e in res]
 
 
