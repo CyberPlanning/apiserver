@@ -167,6 +167,6 @@ def resolve_custom(db,
                   end_date=e['end_date'],
                   event_id=e['_id'],
                   classrooms=e['locations'],
-                  affiliations=e['affiliation'],
+                  affiliations=e.get('affiliation', []),
                   teachers=e['stakeholders'])
             for e in res]
