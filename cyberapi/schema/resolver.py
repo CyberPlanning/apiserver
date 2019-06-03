@@ -147,6 +147,12 @@ def resolve_custom(db,
                 re.compile(sh) for sh in teachers
             ]
         }
+    if affiliation_groups:
+        mongo_filter["affiliation"] = {
+            "$in": [
+                re.compile(group) for group in affiliation_groups
+            ]
+        }
 
     cursor = db["planning_custom"].find(mongo_filter)
     cursor.sort("start_date", ASCENDING)
@@ -157,5 +163,6 @@ def resolve_custom(db,
                     end_date=e['end_date'],
                     event_id=e['_id'],
                     classrooms=e['locations'],
+                    affiliations=e['affiliation'],
                     teachers=e['stakeholders'])
     for e in res]

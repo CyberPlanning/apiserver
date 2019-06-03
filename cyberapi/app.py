@@ -123,10 +123,12 @@ def admin(token, action=None, eventid=None):
     if request.method == 'POST':
         if action == 'save':
             try:
+                affiliations = [i.strip() for i in request.form['affiliation'].split(',')]
                 event = {
                     'title': request.form['title'],
                     'description': request.form['desc'],
                     'stakeholders': [request.form['stake']],
+                    'affiliation': affiliations,
                     'locations': [request.form['location']],
                     'start_date': datetime.strptime(request.form['startdate'] + " " + request.form['starttime'], "%Y-%m-%d %H:%M"),
                     'end_date': datetime.strptime(request.form['enddate'] + " " + request.form['endtime'], "%Y-%m-%d %H:%M")

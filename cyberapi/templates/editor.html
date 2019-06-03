@@ -12,7 +12,7 @@
             {% for item in customs %}
                 <li>
                     <div>
-                        <span>{{item.title}} : {{item.start_date}} - {{item.end_date}}</span>
+                        <span>{{item.title}} : {{item.start_date}} - {{item.end_date}} ({{item.affiliation | join(',')}})</span>
                         <a href="/admin/{{token}}/remove/{{item._id}}">Remove</a>
                         <a href="/admin/{{token}}/update/{{item._id}}">Update</a>
                     </div>
@@ -32,6 +32,9 @@
                 </div>
                 <div class="row"><label for="stake">Stakeholder :</label>
                     <input type="text" name="stake" id="stake" value="{{event.stakeholders | first}}">
+                </div>
+                <div class="row"><label for="affiliation">Affiliations :</label>
+                    <input type="text" name="affiliation" id="affiliation" value="{{event.affiliation | join(',')}}">
                 </div>
                 <div class="row"><label for="location">Location :</label>
                     <input type="text" name="location" id="location" value="{{event.locations | first}}">
@@ -53,6 +56,7 @@
                 <div class="row"><label for="title">Title :</label><input type="text" name="title" id="title"></div>
                 <div class="row"><label for="desc">Description :</label><input type="text" name="desc" id="desc"></div>
                 <div class="row"><label for="stake">Stakeholder :</label><input type="text" name="stake" id="stake"></div>
+                <div class="row"><label for="affiliation">Affiliations :</label><input type="text" name="affiliation" id="affiliation"></div>
                 <div class="row"><label for="location">Location :</label><input type="text" name="location" id="location"></div>
                 <div class="row"><label for="startdate">Start date :</label><input type="date" name="startdate" id="startdate"><input type="time" name="starttime" id="starttime"></div>
                 <div class="row"><label for="enddate">End date :</label><input type="date" name="enddate" id="enddate"><input type="time" name="endtime" id="endtime"></div>
