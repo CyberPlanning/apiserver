@@ -25,6 +25,8 @@ class Event(graphene.ObjectType):
     teachers = graphene.List(graphene.String)
     groups = graphene.List(graphene.String)
 
+    affiliations = graphene.List(graphene.String)
+
     @permissions('view', 'title')
     def resolve_title(self, info, **args):
         return self.title
@@ -52,3 +54,7 @@ class Event(graphene.ObjectType):
     @permissions('view', 'groups')
     def resolve_groups(self, info, **args):
         return self.groups
+
+    @permissions('view', 'groups')
+    def resolve_affiliations(self, info, **args):
+        return self.affiliations

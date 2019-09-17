@@ -4,6 +4,7 @@ from pymongo import ASCENDING
 
 from .event import Event
 
+
 def resolve(db,
             collection,
             from_date,
@@ -65,13 +66,15 @@ def resolve_cyber(db, **args):
     res = resolve(db, **args)
     return [
         Event(title=e['title'],
-            start_date=e['start_date'],
-            end_date=e['end_date'],
-            event_id=e['event_id'],
-            classrooms=e['classrooms'],
-            teachers=e['teachers'],
-            groups=e['groups'])
-    for e in res]
+              start_date=e['start_date'],
+              end_date=e['end_date'],
+              event_id=e['event_id'],
+              classrooms=e['classrooms'],
+              teachers=e['teachers'],
+              groups=e['groups'],
+              affiliations=e['affiliation'])
+        for e in res]
+
 
 def resolve_info(db, **args):
     args.update({
@@ -80,13 +83,14 @@ def resolve_info(db, **args):
     res = resolve(db, **args)
     return [
         Event(title=e['title'],
-            start_date=e['start_date'],
-            end_date=e['end_date'],
-            event_id=e['event_id'],
-            classrooms=e['classrooms'],
-            teachers=e['teachers'],
-            groups=e['groups'])
-    for e in res]
+              start_date=e['start_date'],
+              end_date=e['end_date'],
+              event_id=e['event_id'],
+              classrooms=e['classrooms'],
+              teachers=e['teachers'],
+              groups=e['groups'],
+              affiliations=e['affiliation'])
+        for e in res]
 
 
 def resolve_hack2g2(db, **args):
@@ -96,24 +100,25 @@ def resolve_hack2g2(db, **args):
     res = resolve(db, **args)
     return [
         Event(title=e['title'],
-            start_date=e['start_date'],
-            end_date=e['end_date'],
-            event_id=e['event_id'],
-            classrooms=e['classrooms'],
-            teachers=e['teachers'],
-            groups=e['groups'])
-    for e in res]
+              start_date=e['start_date'],
+              end_date=e['end_date'],
+              event_id=e['event_id'],
+              classrooms=e['classrooms'],
+              teachers=e['teachers'],
+              groups=e['groups'],
+              affiliations=e['affiliation'])
+        for e in res]
 
 
-def resolve_custom(db, 
-                collection,
-                from_date,
-                to_date=None,
-                title=None,
-                affiliation_groups=None,
-                classrooms=None,
-                teachers=None,
-                limit=0):
+def resolve_custom(db,
+                   collection,
+                   from_date,
+                   to_date=None,
+                   title=None,
+                   affiliation_groups=None,
+                   classrooms=None,
+                   teachers=None,
+                   limit=0):
 
     mongo_filter = {"start_date": {"$gte": from_date}}
 
@@ -144,15 +149,24 @@ def resolve_custom(db,
                 re.compile(sh) for sh in teachers
             ]
         }
+    if affiliation_groups:
+        mongo_filter["$or"] = [
+            {"affiliation": {"$in": [
+                re.compile(group) for group in affiliation_groups
+            ]}},
+            {"affiliation": {"$exists": False}},
+            {"affiliation": [""]}
+        ]
 
     cursor = db["planning_custom"].find(mongo_filter)
     cursor.sort("start_date", ASCENDING)
 
     res = cursor.limit(limit)
-    return [ Event(title=e['title'],
-                    start_date=e['start_date'],
-                    end_date=e['end_date'],
-                    event_id=e['_id'],
-                    classrooms=e['locations'],
-                    teachers=e['stakeholders'])
-    for e in res]
+    return [Event(title=e['title'],
+                  start_date=e['start_date'],
+                  end_date=e['end_date'],
+                  event_id=e['_id'],
+                  classrooms=e['locations'],
+                  affiliations=e.get('affiliation', []),
+                  teachers=e['stakeholders'])
+            for e in res]
