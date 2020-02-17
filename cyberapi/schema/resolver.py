@@ -1,5 +1,6 @@
 import datetime
 import re
+import logging
 from pymongo import ASCENDING
 
 from .event import Event
@@ -53,6 +54,7 @@ def resolve(db,
             ]
         }
 
+    logging.debug("filter for %s : %s" % (collection, mongo_filter))
     cursor = db[collection].find(mongo_filter)
     cursor.sort("start_date", ASCENDING)
 
@@ -158,6 +160,7 @@ def resolve_custom(db,
             {"affiliation": [""]}
         ]
 
+    logging.debug("filter for custom : %s" % mongo_filter)
     cursor = db["planning_custom"].find(mongo_filter)
     cursor.sort("start_date", ASCENDING)
 

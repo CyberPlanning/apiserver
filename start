@@ -3,5 +3,6 @@
 export FLASK_APP=./cyberapi/app.py
 export CYBERPLANNING_SETTINGS=../config/dev.cfg
 export FLASK_DEBUG=True
+export FLASK_ENV=development
 
 flask run --host=localhost --port=3001

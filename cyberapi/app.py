@@ -5,6 +5,7 @@ from graphql_server import (HttpQueryError, default_format_error,
 from functools import wraps, partial
 from datetime import datetime
 from bson import ObjectId
+import logging
 
 
 from .crossdomain import crossdomain
@@ -18,6 +19,10 @@ app = Flask(__name__)
 app.config.from_object('cyberapi.settings.Default')
 app.config.from_envvar('CYBERPLANNING_SETTINGS')
 
+
+if app.debug:
+    logger = logging.getLogger()
+    logger.setLevel(logging.DEBUG)
 
 @app.route('/graphql/', methods=['GET', 'POST', 'PUT', 'DELETE'])
 @crossdomain(origin='*', methods=['GET', 'POST'], headers=["Content-Type", "Authorization"])
